@@ -1,0 +1,15 @@
+# Directories
+.idea/
+node_modules/
+dist/
+
+# Sub-Files
+.vscode/settings.json
+
+# Files
+.DS_Store
+.env
+
+# File Types
+*.zip
+*.txt
