@@ -68,6 +68,7 @@ interface ICustomCard {
 // export const CardSchema = createMongoSchema<ICustomCard>("Cards", {...});
 
 declare const CardSchema: MongoSchemaBuilder<ICustomCard>;
+declare const InventorySchema: MongoSchemaBuilder<ICustomCard>;
 
 // ============================================================================
 // Step 3: Configure and create the engine
@@ -76,6 +77,7 @@ declare const CardSchema: MongoSchemaBuilder<ICustomCard>;
 export const { engine, useCardEngine, useCardPool } = createCardPoolEngine<ICustomCard>({
     // Your MongoDB schema builder
     cardSchema: CardSchema,
+    inventorySchema: InventorySchema,
 
     // Define your indices - these are used for fast lookups and identity searches
     indices: [
@@ -266,25 +268,31 @@ async function examples(): Promise<void> {
 
     // Create a new card
     const newCard = await cardEngine.insert({
-        cardId: "CARD_NEW",
-        identity: {
-            name: "New Card",
-            group: "Test Group",
-            version: 1
-        },
-        class: {
-            type: CardType.Regular,
-            tier: CardTier.None,
-            rarity: 1
-        },
-        asset: {
-            imageUrl: "https://cdn.example.com/cards/new.png",
-            cdn: { filePath: "cards/new.png" }
-        },
-        state: {
-            released: false,
-            droppable: true,
-            tradeable: true
+        imageUrl: "https://cdn.example.com/cards/new.png",
+        cdnRoute: "cards/new.png",
+        namePrefix: "EXAMPLE",
+
+        card: {
+            cardId: "CARD_NEW",
+            identity: {
+                name: "New Card",
+                group: "Test Group",
+                version: 1
+            },
+            class: {
+                type: CardType.Regular,
+                tier: CardTier.None,
+                rarity: 1
+            },
+            asset: {
+                imageUrl: "https://cdn.example.com/cards/new.png",
+                cdn: { filePath: "cards/new.png" }
+            },
+            state: {
+                released: false,
+                droppable: true,
+                tradeable: true
+            }
         }
     });
 
@@ -334,9 +342,11 @@ interface ISpecialCard extends ICustomCard {
 }
 
 declare const SpecialCardSchema: MongoSchemaBuilder<ISpecialCard>;
+declare const SpecialInventorySchema: MongoSchemaBuilder<ISpecialCard>;
 
 const specialKit = createCardPoolEngine<ISpecialCard>({
     cardSchema: SpecialCardSchema,
+    inventorySchema: SpecialInventorySchema,
     indices: [
         { name: "byName", getKey: c => c.identity.name },
         { name: "byPower", getKey: c => c.specialPower }

@@ -1,7 +1,7 @@
 {
-    "name": "@xsqu1znt/kpop-core",
+    "name": "@xsqu1znt/kcore-card-engine",
     "version": "1.0.0",
-    "description": "The core systems for my kpop card bots.",
+    "description": "The core systems used for my card bots.",
     "license": "MIT",
     "author": "xsqu1znt",
     "main": "./dist/index.cjs",
