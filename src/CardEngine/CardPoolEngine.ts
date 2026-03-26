@@ -6,11 +6,12 @@ import type {
     CompiledWeightTier,
     FuzzySearchIdentityResult,
     FuzzySearchResult,
+    InsertNewCardData,
     SampleOptions,
     SampleResult
 } from "@/types/CardEngine.types";
 import { EventEmitter } from "node:events";
-import { choice, merge, str, weighted } from "qznt";
+import { choice, has, merge, str, weighted } from "qznt";
 import { CardIndex, NestedCardIndex } from "./CardIndex";
 import { CardPool } from "./CardPool";
 import { CardPoolCache } from "./CardPoolCache";
@@ -208,7 +209,7 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
             const available = Array.from(candidates).filter(id => !picked.has(id));
 
             if (!available.length) {
-                return { cards: [], failReason: "Not enough cards were available to drop." };
+                return [[], "Not enough cards were available to drop."];
             }
 
             const cardId = choice(available);
@@ -216,7 +217,7 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
             results.push(pool.all.get(cardId)!);
         }
 
-        return { cards: results };
+        return [results];
     }
 
     /** Sorts a list of cards by an opinionated order. */
@@ -225,10 +226,9 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
     }
 
     /** Creates a new card in the database and uploads its image to the CDN. */
-    async insert(
-        data: { namePrefix: string; imageUrl: string; cdnRoute: string; card: Partial<T> },
-        stageFns?: [() => any, () => any, () => any]
-    ): Promise<T> {
+    async insert(data: InsertNewCardData<T>, stageFns?: [() => any, () => any, () => any]): Promise<T> {
+        if (!this.pool) await this.init();
+
         const existing = this.pool?.get(data.card.cardId!);
         if (existing) throw new Error(`Card (${data.card.cardId}) already exists`);
         if (!data.imageUrl) throw new Error("Card must have an image URL");
@@ -246,7 +246,13 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
 
         // --- Create Card ---
         await stageFns?.[1]();
-        const [card] = await this.config.cardSchema.create([data]);
+        data.card.asset = {
+            imageUrl: imageResult.cdnUrl!,
+            cdn: {
+                filePath: imageResult.path!
+            }
+        };
+        const [card] = await this.config.cardSchema.create([data.card]);
         if (!card) throw new Error("Failed to insert card into database");
 
         // --- Refresh Cache ---
@@ -261,13 +267,27 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
         if (!this.pool) await this.init();
 
         const oldCard = this.pool!.get(cardId);
-        if (!oldCard) throw new Error(`${cardId} is not an existing card ID`);
+        if (!oldCard) return null;
 
         const merged = merge({}, oldCard, update);
         const updated = await this.config.cardSchema.update({ cardId }, merged, { returnDocument: "after" });
-        if (!updated) throw new Error(`Failed to update card (${cardId}) in the database`);
+        if (!updated) return null;
 
         await this.cache.refreshMany([cardId]);
+        return updated;
+    }
+
+    /** Modifies a card directly in the cache then updates the database. This ensures updates that would be subject to race conditions are applied immediately. */
+    async updateSync(cardId: string, update: (card: T) => T): Promise<T | null> {
+        if (!this.pool) await this.init();
+
+        const oldCard = this.pool!.get(cardId);
+        if (!oldCard) return null;
+
+        const updated = update(oldCard);
+        this.pool.insert(updated);
+        await this.config.cardSchema.update({ cardId }, updated, { returnDocument: "after" });
+
         return updated;
     }
 
@@ -288,14 +308,6 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
         } catch (err) {
             console.error("Failed to delete card", err);
             return false;
-        }
-    }
-
-    async refresh(cardIds?: string[]): Promise<void> {
-        if (cardIds) {
-            await this.cache.refreshMany(cardIds);
-        } else {
-            await this.cache.refreshAll();
         }
     }
 
@@ -339,6 +351,14 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
         await this.config.cardSchema.updateAll({ cardId: { $in: cardIds } }, { "state.released": true });
         await this.cache.refreshMany(cardIds);
         return this.getMany(cardIds, true);
+    }
+
+    async refresh(cardIds?: string[]): Promise<void> {
+        if (cardIds) {
+            await this.cache.refreshMany(cardIds);
+        } else {
+            await this.cache.refreshAll();
+        }
     }
 }
 

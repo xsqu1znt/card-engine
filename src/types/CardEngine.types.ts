@@ -78,15 +78,19 @@ export interface CardPoolEngineEvents<T> {
     error: [error: Error];
 }
 
+export interface InsertNewCardData<T> {
+    namePrefix: string;
+    imageUrl: string;
+    cdnRoute: string;
+    card: Partial<T>;
+}
+
 export interface SampleOptions {
     userId?: string;
     excludeCardIds?: string[];
 }
 
-export interface SampleResult<T> {
-    cards: T[];
-    failReason?: string;
-}
+export type SampleResult<T> = [cards: T[], failReason?: string];
 
 export interface FuzzySearchResult<T> {
     results: T[];

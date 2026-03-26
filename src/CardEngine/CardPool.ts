@@ -33,7 +33,10 @@ export class CardPool<T extends CardLike> {
 
     insert(card: T): void {
         const existing = this.all.get(card.cardId);
-        if (existing) this.remove(existing);
+        if (existing) {
+            this.remove(existing);
+            this.allReleased.delete(card.cardId);
+        }
 
         this.all.set(card.cardId, card);
         if (card.state.released) this.allReleased.set(card.cardId, card);
