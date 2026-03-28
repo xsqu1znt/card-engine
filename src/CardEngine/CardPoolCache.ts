@@ -39,7 +39,9 @@ export class CardPoolCache<T extends CardLike> extends EventEmitter {
 
     private enqueue(fn: () => Promise<void>): Promise<void> {
         this.refreshQueue = this.refreshQueue
-            .then(() => this.initPromise ?? Promise.resolve())
+            .then(() => {
+                this.initPromise ?? Promise.resolve();
+            })
             .then(() => fn())
             .catch(err => {
                 this.emit("error", err instanceof Error ? err : new Error(String(err)));

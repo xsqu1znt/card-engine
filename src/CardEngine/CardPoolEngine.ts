@@ -128,6 +128,7 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
 
     constructor(private config: CardPoolEngineConfig<T>) {
         super();
+
         this.cache = new CardPoolCache<T>(config.cardSchema, config.indices, config.nestedIndices);
         this.compiledDropRates = compileWeightPool(config.dropRates);
 
