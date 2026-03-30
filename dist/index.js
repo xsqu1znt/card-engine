@@ -704,6 +704,25 @@ var CardPoolEngine = class extends EventEmitter2 {
     this.emit("cardUpdated", updated, oldCard);
     return updated;
   }
+  /** Modifies multiple cards in the database. Supports atomic operators e.g. $inc. */
+  async modifyMany(cardIds, update) {
+    await this.ensureInit();
+    const oldCards = cardIds.map((id) => this.pool.get(id));
+    if (oldCards.length !== cardIds.length) return [];
+    const updateRes = await this.config.cardSchema.updateAll({ cardId: { $in: cardIds } }, update);
+    if (updateRes.modifiedCount !== cardIds.length) return [];
+    const updated = await this.config.cardSchema.fetchAll({ cardId: { $in: cardIds } });
+    if (updated.length !== cardIds.length) return [];
+    updated.forEach((card) => {
+      this.pool.insert(card);
+      this.emit(
+        "cardUpdated",
+        card,
+        oldCards.find((c) => c?.cardId === card.cardId)
+      );
+    });
+    return updated;
+  }
   /** Removes a card from the database and CDN, and clears it from player inventories. */
   async delete(cardId) {
     await this.ensureInit();

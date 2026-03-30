@@ -198,6 +198,8 @@ declare class CardPoolEngine<T extends CardLike> extends EventEmitter {
     insert(data: InsertNewCardData<T>, stageFns?: [() => any, () => any, () => any]): Promise<T>;
     /** Modifies a card in the database. Supports atomic operators e.g. $inc. */
     modify(cardId: string, update: UpdateQuery<T>): Promise<T | null>;
+    /** Modifies multiple cards in the database. Supports atomic operators e.g. $inc. */
+    modifyMany(cardIds: string[], update: UpdateQuery<T>): Promise<T[]>;
     /** Removes a card from the database and CDN, and clears it from player inventories. */
     delete(cardId: string): Promise<boolean>;
     /** Swaps the image of a card in the database. */
