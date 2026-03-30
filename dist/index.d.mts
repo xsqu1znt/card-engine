@@ -192,6 +192,8 @@ declare class CardPoolEngine<T extends CardLike> extends EventEmitter {
     getMany(cardIds: string[], released?: boolean): T[];
     /** Samples a number of cards from the card pool. */
     sample(limit: number, options?: SampleOptions): SampleResult<T>;
+    /** Samples a number of cards from the card pool and modifies them, then returns the modified cards. */
+    sampleAndModify(limit: number, update: UpdateQuery<T>, options?: SampleOptions): Promise<SampleResult<T>>;
     /** Sorts a list of cards by an opinionated order. */
     sort(cards: T[]): T[];
     /** Creates a new card in the database and uploads its image to the CDN. */

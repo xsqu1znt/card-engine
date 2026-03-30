@@ -283,6 +283,19 @@ export class CardPoolEngine<T extends CardLike> extends EventEmitter {
         return [results];
     }
 
+    /** Samples a number of cards from the card pool and modifies them, then returns the modified cards. */
+    async sampleAndModify(limit: number, update: UpdateQuery<T>, options?: SampleOptions): Promise<SampleResult<T>> {
+        const [cards, failReason] = this.sample(limit, options);
+        if (failReason) return [[], failReason];
+
+        const modifiedCards = await this.modifyMany(
+            cards.map(c => c.cardId),
+            update
+        );
+        if (!modifiedCards.length) return [[], "Failed to modify cards."];
+        return [modifiedCards];
+    }
+
     /** Sorts a list of cards by an opinionated order. */
     sort(cards: T[]): T[] {
         return [...cards].sort(this.config.sortFn);
