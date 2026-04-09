@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { MongoSchemaBuilder } from 'vimcord';
-import { UpdateQuery } from 'mongoose';
+import { UpdateQuery, ProjectionType } from 'mongoose';
 import { AttachmentBuilder } from 'discord.js';
 import sharp from 'sharp';
 
@@ -223,8 +223,9 @@ declare function createCardPoolEngine<T extends CardLike>(config: CardPoolEngine
     useCardPool: () => Promise<CardPool<T>>;
 };
 
-interface FetchInventoryCardOptions {
+interface FetchInventoryCardOptions<InvCard extends InventoryCardLike> {
     userId?: string;
+    projection?: ProjectionType<InvCard>;
 }
 interface InventoryEngineConfig<Card extends CardLike, InvCard extends InventoryCardLike> {
     useCardEngine: () => Promise<CardPoolEngine<Card>>;
@@ -235,9 +236,9 @@ declare class InventoryEngine<Card extends CardLike, InvCard extends InventoryCa
     private inventoryCardSchema;
     constructor(config: InventoryEngineConfig<Card, InvCard>);
     /** Fetches an inventory card and maps it to its actual card. */
-    fetch(invId: string, options?: FetchInventoryCardOptions): Promise<MappedInventoryCard<Card, InvCard> | undefined>;
-    fetch(invIds: string | string[], options?: FetchInventoryCardOptions): Promise<MappedInventoryCard<Card, InvCard>[]>;
-    fetchAll(options?: FetchInventoryCardOptions): Promise<MappedInventoryCard<Card, InvCard>[]>;
+    fetch(invId: string, options?: FetchInventoryCardOptions<InvCard>): Promise<MappedInventoryCard<Card, InvCard> | undefined>;
+    fetch(invIds: string | string[], options?: FetchInventoryCardOptions<InvCard>): Promise<MappedInventoryCard<Card, InvCard>[]>;
+    fetchAll(options?: FetchInventoryCardOptions<InvCard>): Promise<MappedInventoryCard<Card, InvCard>[]>;
     /** Maps inventory cards to their actual card, filtering out cards that don't exist. */
     mapCards(invCards: InvCard[]): Promise<MappedInventoryCard<Card, InvCard>[]>;
 }

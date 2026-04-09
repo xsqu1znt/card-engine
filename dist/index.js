@@ -818,19 +818,22 @@ var InventoryEngine = class {
     this.inventoryCardSchema = config.inventoryCardSchema;
   }
   async fetch(invIds, options = {}) {
-    const { userId } = options;
+    const { userId, projection } = options;
     const isArray = Array.isArray(invIds);
     const cardIdsArray = isArray ? invIds : [invIds];
-    const invCards = await this.inventoryCardSchema.fetchAll({
-      ...userId && { userId },
-      invId: { $in: cardIdsArray }
-    });
+    const invCards = await this.inventoryCardSchema.fetchAll(
+      {
+        ...userId && { userId },
+        invId: { $in: cardIdsArray }
+      },
+      projection
+    );
     const mapped = await this.mapCards(invCards);
     return isArray ? mapped : mapped[0];
   }
   async fetchAll(options = {}) {
-    const { userId } = options;
-    const invCards = await this.inventoryCardSchema.fetchAll({ ...userId && { userId } });
+    const { userId, projection } = options;
+    const invCards = await this.inventoryCardSchema.fetchAll({ ...userId && { userId } }, projection);
     return this.mapCards(invCards);
   }
   /** Maps inventory cards to their actual card, filtering out cards that don't exist. */

@@ -1,9 +1,11 @@
 import { CardLike, InventoryCardLike, MappedInventoryCard } from "@/types/card.types";
+import { ProjectionType } from "mongoose";
 import { MongoSchemaBuilder } from "vimcord";
 import { CardPoolEngine } from "./CardPoolEngine";
 
-interface FetchInventoryCardOptions {
+interface FetchInventoryCardOptions<InvCard extends InventoryCardLike> {
     userId?: string;
+    projection?: ProjectionType<InvCard>;
 }
 
 export interface InventoryEngineConfig<Card extends CardLike, InvCard extends InventoryCardLike> {
@@ -21,32 +23,38 @@ export class InventoryEngine<Card extends CardLike, InvCard extends InventoryCar
     }
 
     /** Fetches an inventory card and maps it to its actual card. */
-    async fetch(invId: string, options?: FetchInventoryCardOptions): Promise<MappedInventoryCard<Card, InvCard> | undefined>;
+    async fetch(
+        invId: string,
+        options?: FetchInventoryCardOptions<InvCard>
+    ): Promise<MappedInventoryCard<Card, InvCard> | undefined>;
     async fetch(
         invIds: string | string[],
-        options?: FetchInventoryCardOptions
+        options?: FetchInventoryCardOptions<InvCard>
     ): Promise<MappedInventoryCard<Card, InvCard>[]>;
     async fetch(
         invIds: string | string[],
-        options: FetchInventoryCardOptions = {}
+        options: FetchInventoryCardOptions<InvCard> = {}
     ): Promise<(MappedInventoryCard<Card, InvCard> | undefined) | MappedInventoryCard<Card, InvCard>[]> {
-        const { userId } = options;
+        const { userId, projection } = options;
 
         const isArray = Array.isArray(invIds);
         const cardIdsArray = isArray ? invIds : [invIds];
-        const invCards = await this.inventoryCardSchema.fetchAll({
-            ...(userId && { userId }),
-            invId: { $in: cardIdsArray }
-        });
+        const invCards = await this.inventoryCardSchema.fetchAll(
+            {
+                ...(userId && { userId }),
+                invId: { $in: cardIdsArray }
+            },
+            projection
+        );
 
         const mapped = await this.mapCards(invCards);
         return isArray ? mapped : mapped[0];
     }
 
-    async fetchAll(options: FetchInventoryCardOptions = {}): Promise<MappedInventoryCard<Card, InvCard>[]> {
-        const { userId } = options;
+    async fetchAll(options: FetchInventoryCardOptions<InvCard> = {}): Promise<MappedInventoryCard<Card, InvCard>[]> {
+        const { userId, projection } = options;
 
-        const invCards = await this.inventoryCardSchema.fetchAll({ ...(userId && { userId }) });
+        const invCards = await this.inventoryCardSchema.fetchAll({ ...(userId && { userId }) }, projection);
         return this.mapCards(invCards);
     }
 
