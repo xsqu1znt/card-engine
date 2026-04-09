@@ -11,3 +11,11 @@ export interface InventoryCardLike {
     userId: string;
     cardId: string;
 }
+
+export interface MappedInventoryCard<
+    Card extends CardLike = CardLike,
+    InvCard extends InventoryCardLike = InventoryCardLike
+> {
+    card: Card;
+    invCard: InvCard;
+}

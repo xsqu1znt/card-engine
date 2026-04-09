@@ -21,6 +21,10 @@ interface InventoryCardLike {
     userId: string;
     cardId: string;
 }
+interface MappedInventoryCard<Card extends CardLike = CardLike, InvCard extends InventoryCardLike = InventoryCardLike> {
+    card: Card;
+    invCard: InvCard;
+}
 
 type Validator<T> = (card: T) => boolean;
 type KeyExtractor<T, K> = (card: T) => K | undefined;
@@ -345,4 +349,4 @@ declare class ImageManager {
     static scaleBuffer(buffer: Buffer, factor: number): Promise<Buffer>;
 }
 
-export { BunnyCDN, type BunnyCDNOptions, type BunnyCDNRegion, type BunnyCDNUploadOptions, type BunnyCDN_Upload, CanvasUtils, CardGalleryRenderer, CardIndex, type CardLike, CardPool, CardPoolCache, CardPoolEngine, type CardPoolEngineConfig, type CardPoolEngineEvents, type CreateImageGalleryOptions, type FetchedImageWithSharp, type FuzzySearchIdentityResult, type FuzzySearchResult, type ICardIndex, ImageManager, type IndexConfig, type InsertNewCardData, type InventoryCardLike, type KeyExtractor, type MediaDimensions, NestedCardIndex, type NestedIndexConfig, type RenderedMediaWithSharp, type SampleOptions, type SampleResult, type Validator, createCardPoolEngine, useBunnyCDN };
+export { BunnyCDN, type BunnyCDNOptions, type BunnyCDNRegion, type BunnyCDNUploadOptions, type BunnyCDN_Upload, CanvasUtils, CardGalleryRenderer, CardIndex, type CardLike, CardPool, CardPoolCache, CardPoolEngine, type CardPoolEngineConfig, type CardPoolEngineEvents, type CreateImageGalleryOptions, type FetchedImageWithSharp, type FuzzySearchIdentityResult, type FuzzySearchResult, type ICardIndex, ImageManager, type IndexConfig, type InsertNewCardData, type InventoryCardLike, type KeyExtractor, type MappedInventoryCard, type MediaDimensions, NestedCardIndex, type NestedIndexConfig, type RenderedMediaWithSharp, type SampleOptions, type SampleResult, type Validator, createCardPoolEngine, useBunnyCDN };
