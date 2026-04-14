@@ -1,14 +1,26 @@
 {
-	"tabWidth": 4,
-	"useTabs": false,
-	"printWidth": 125,
+    "tabWidth": 4,
+    "useTabs": false,
+    "printWidth": 125,
+    "trailingComma": "none",
+    "arrowParens": "avoid",
+    "bracketSpacing": true,
+    "singleQuote": false,
+    "semi": true,
+    "endOfLine": "lf",
 
-	"trailingComma": "none",
-	"arrowParens": "avoid",
+    "plugins": ["@ianvs/prettier-plugin-sort-imports"],
 
-	"bracketSpacing": true,
-	"singleQuote": false,
-	"semi": true,
-
-	"endOfLine": "lf"
+    "importOrder": [
+        "<TYPES>",
+        "<TYPES>^@vimcord/(.*)$",
+        "<TYPES>^@/(.*)$",
+        "<TYPES>^[./]",
+        "",
+        "<BUILTIN_MODULES>",
+        "<THIRD_PARTY_MODULES>",
+        "^@vimcord/(.*)$",
+        "^@/(.*)$",
+        "^[./]"
+    ]
 }

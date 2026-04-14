@@ -1,8 +1,8 @@
-import { EventEmitter } from 'node:events';
-import { MongoSchemaBuilder } from 'vimcord';
-import { UpdateQuery, ProjectionType } from 'mongoose';
-import { AttachmentBuilder } from 'discord.js';
-import sharp from 'sharp';
+import { EventEmitter } from "node:events";
+import { MongoSchemaBuilder } from "vimcord";
+import { UpdateQuery, ProjectionType } from "mongoose";
+import { AttachmentBuilder } from "discord.js";
+import sharp from "sharp";
 
 interface CardLike {
     cardId: string;
@@ -96,7 +96,11 @@ declare class CardPoolCache<T extends CardLike> extends EventEmitter {
     private initPromise;
     private refreshQueue;
     private version;
-    constructor(cardSchema: MongoSchemaBuilder<T>, indexConfigs: IndexConfig<T, any>[], nestedIndexConfigs?: NestedIndexConfig<T, any, any>[] | undefined);
+    constructor(
+        cardSchema: MongoSchemaBuilder<T>,
+        indexConfigs: IndexConfig<T, any>[],
+        nestedIndexConfigs?: NestedIndexConfig<T, any, any>[] | undefined
+    );
     get cardPool(): CardPool<T>;
     init(): Promise<this>;
     private enqueue;
@@ -163,7 +167,10 @@ interface FuzzySearchIdentityResult {
     identity: string;
     cardIds: string[];
 }
-declare class CardPoolEngine<Card extends CardLike, FuzzySearchFields extends Record<string, FuzzySearchFieldGetter<Card>> = Record<string, FuzzySearchFieldGetter<Card>>> extends EventEmitter {
+declare class CardPoolEngine<
+    Card extends CardLike,
+    FuzzySearchFields extends Record<string, FuzzySearchFieldGetter<Card>> = Record<string, FuzzySearchFieldGetter<Card>>
+> extends EventEmitter {
     private config;
     private fuzzySearchFields;
     private cache;
@@ -176,9 +183,12 @@ declare class CardPoolEngine<Card extends CardLike, FuzzySearchFields extends Re
     /** Fuzzy searches the card pool and returns a list of cards. */
     fuzzySearch(query: string, options?: FuzzySearchOptions<Card, FuzzySearchFields>): Card[];
     /** Fuzzy searches the card pool and returns a list of cards by their identifiers.. */
-    fuzzySearchIdentity(query: string, options?: {
-        limit?: number;
-    }): FuzzySearchIdentityResult[];
+    fuzzySearchIdentity(
+        query: string,
+        options?: {
+            limit?: number;
+        }
+    ): FuzzySearchIdentityResult[];
     /** Gets a card from the card pool. */
     get(cardId: string, released?: boolean): Card | undefined;
     getMany(cardIds: string[], released?: boolean): Card[];
@@ -197,15 +207,23 @@ declare class CardPoolEngine<Card extends CardLike, FuzzySearchFields extends Re
     /** Removes a card from the database and CDN, and clears it from player inventories. */
     delete(cardId: string): Promise<boolean>;
     /** Swaps the image of a card in the database. */
-    swapImage(cardId: string, newImageUrl: string, options: {
-        namePrefix: string;
-        cdnRoute: string;
-    }): Promise<Card | null>;
+    swapImage(
+        cardId: string,
+        newImageUrl: string,
+        options: {
+            namePrefix: string;
+            cdnRoute: string;
+        }
+    ): Promise<Card | null>;
     /** Releases a batch of cards and updates the cache. */
     release(cardIds: string[]): Promise<Card[]>;
     refresh(cardIds?: string[]): Promise<void>;
 }
-declare function createCardPoolEngine<Card extends CardLike>(config: CardPoolEngineConfig<Card>): <FuzzySearchFields extends Record<string, FuzzySearchFieldGetter<Card>>>(fuzzySearchFields: FuzzySearchFields) => {
+declare function createCardPoolEngine<Card extends CardLike>(
+    config: CardPoolEngineConfig<Card>
+): <FuzzySearchFields extends Record<string, FuzzySearchFieldGetter<Card>>>(
+    fuzzySearchFields: FuzzySearchFields
+) => {
     engine: CardPoolEngine<Card, FuzzySearchFields>;
     useCardEngine: () => Promise<CardPoolEngine<Card, FuzzySearchFields>>;
     useCardPool: () => Promise<CardPool<Card>>;
@@ -224,13 +242,21 @@ declare class InventoryEngine<Card extends CardLike, InvCard extends InventoryCa
     private inventoryCardSchema;
     constructor(config: InventoryEngineConfig<Card, InvCard>);
     /** Fetches an inventory card and maps it to its actual card. */
-    fetch(invId: string, options?: FetchInventoryCardOptions<InvCard>): Promise<MappedInventoryCard<Card, InvCard> | undefined>;
-    fetch(invIds: string | string[], options?: FetchInventoryCardOptions<InvCard>): Promise<MappedInventoryCard<Card, InvCard>[]>;
+    fetch(
+        invId: string,
+        options?: FetchInventoryCardOptions<InvCard>
+    ): Promise<MappedInventoryCard<Card, InvCard> | undefined>;
+    fetch(
+        invIds: string | string[],
+        options?: FetchInventoryCardOptions<InvCard>
+    ): Promise<MappedInventoryCard<Card, InvCard>[]>;
     fetchAll(options?: FetchInventoryCardOptions<InvCard>): Promise<MappedInventoryCard<Card, InvCard>[]>;
     /** Maps inventory cards to their actual card, filtering out cards that don't exist. */
     mapCards(invCards: InvCard[]): Promise<MappedInventoryCard<Card, InvCard>[]>;
 }
-declare function createInventoryEngine<Card extends CardLike, InvCard extends InventoryCardLike>(config: InventoryEngineConfig<Card, InvCard>): {
+declare function createInventoryEngine<Card extends CardLike, InvCard extends InventoryCardLike>(
+    config: InventoryEngineConfig<Card, InvCard>
+): {
     engine: InventoryEngine<Card, InvCard>;
     useInventoryEngine: () => InventoryEngine<Card, InvCard>;
 };
@@ -271,14 +297,17 @@ declare class CardGalleryRenderer {
     private readonly cards;
     private readonly cardBuffers;
     private readonly cardMetadata;
-    constructor(options?: {
-        cards: CardLike[];
-    });
-    addCards(...cards: (CardLike | {
-        card: CardLike;
-        buffer: Buffer;
-        metadata?: sharp.Metadata;
-    })[]): this;
+    constructor(options?: { cards: CardLike[] });
+    addCards(
+        ...cards: (
+            | CardLike
+            | {
+                  card: CardLike;
+                  buffer: Buffer;
+                  metadata?: sharp.Metadata;
+              }
+        )[]
+    ): this;
     private fetchCardImages;
     private chunkRows;
     private calculateCanvasSize;
@@ -322,14 +351,21 @@ declare class BunnyCDN {
 declare const useBunnyCDN: () => BunnyCDN;
 
 declare class CanvasUtils {
-    static createTextBuffer(text: string, canvasWidth: number, canvasHeight: number, xPos: number, yPos: number, options?: {
-        font?: string;
-        fontSize?: number;
-        fontStyle?: string;
-        fontWeight?: string;
-        align?: "left" | "center" | "right";
-        color?: string;
-    }): Buffer<ArrayBufferLike>;
+    static createTextBuffer(
+        text: string,
+        canvasWidth: number,
+        canvasHeight: number,
+        xPos: number,
+        yPos: number,
+        options?: {
+            font?: string;
+            fontSize?: number;
+            fontStyle?: string;
+            fontWeight?: string;
+            align?: "left" | "center" | "right";
+            color?: string;
+        }
+    ): Buffer<ArrayBufferLike>;
 }
 
 interface CreateImageGalleryOptions {
@@ -355,10 +391,53 @@ interface CreateImageGalleryOptions {
 declare class ImageManager {
     private static readonly MAX_QUEUE_SIZE;
     private static readonly queue;
-    static createRenderedMediaData(image: sharp.Sharp, buffer: Buffer, dimensions: MediaDimensions, fileName: string): RenderedMediaWithSharp;
+    static createRenderedMediaData(
+        image: sharp.Sharp,
+        buffer: Buffer,
+        dimensions: MediaDimensions,
+        fileName: string
+    ): RenderedMediaWithSharp;
     static fetch(url: string, useSharp?: boolean): Promise<Buffer<ArrayBuffer>>;
     static fetch(url: string, useSharp: true): Promise<FetchedImageWithSharp>;
     static scaleBuffer(buffer: Buffer, factor: number): Promise<Buffer>;
 }
 
-export { BunnyCDN, type BunnyCDNOptions, type BunnyCDNRegion, type BunnyCDNUploadOptions, type BunnyCDN_Upload, CanvasUtils, CardGalleryRenderer, CardIndex, type CardLike, CardPool, CardPoolCache, CardPoolEngine, type CardPoolEngineConfig, type CardPoolEngineEvents, type CreateImageGalleryOptions, type FetchedImageWithSharp, type FuzzySearchIdentityResult, type FuzzySearchOptions, type ICardIndex, ImageManager, type IndexConfig, type InsertNewCardData, type InventoryCardLike, InventoryEngine, type InventoryEngineConfig, type KeyExtractor, type MappedInventoryCard, type MediaDimensions, NestedCardIndex, type NestedIndexConfig, type RenderedMediaWithSharp, type SampleOptions, type SampleResult, type Validator, createCardPoolEngine, createInventoryEngine, useBunnyCDN };
+export {
+    BunnyCDN,
+    type BunnyCDNOptions,
+    type BunnyCDNRegion,
+    type BunnyCDNUploadOptions,
+    type BunnyCDN_Upload,
+    CanvasUtils,
+    CardGalleryRenderer,
+    CardIndex,
+    type CardLike,
+    CardPool,
+    CardPoolCache,
+    CardPoolEngine,
+    type CardPoolEngineConfig,
+    type CardPoolEngineEvents,
+    type CreateImageGalleryOptions,
+    type FetchedImageWithSharp,
+    type FuzzySearchIdentityResult,
+    type FuzzySearchOptions,
+    type ICardIndex,
+    ImageManager,
+    type IndexConfig,
+    type InsertNewCardData,
+    type InventoryCardLike,
+    InventoryEngine,
+    type InventoryEngineConfig,
+    type KeyExtractor,
+    type MappedInventoryCard,
+    type MediaDimensions,
+    NestedCardIndex,
+    type NestedIndexConfig,
+    type RenderedMediaWithSharp,
+    type SampleOptions,
+    type SampleResult,
+    type Validator,
+    createCardPoolEngine,
+    createInventoryEngine,
+    useBunnyCDN
+};
