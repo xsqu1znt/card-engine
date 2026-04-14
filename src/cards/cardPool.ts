@@ -115,13 +115,11 @@ export class CardPool<T extends CardLike, K extends string | number = string | n
         }
     }
 
-    async getIndex(name: string): Promise<CardIndex<T, K> | undefined> {
-        await this.initCache();
+    getIndex(name: string): CardIndex<T, K> | undefined {
         return this.indexes.get(name);
     }
 
-    async getNestedIndex(name: string): Promise<NestedCardIndex<T, K> | undefined> {
-        await this.initCache();
+    getNestedIndex(name: string): NestedCardIndex<T, K> | undefined {
         return this.nestedIndexes.get(name);
     }
 

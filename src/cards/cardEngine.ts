@@ -57,8 +57,8 @@ export interface CardEngineConfig<
     indexes?: CardIndex<T1, K>[];
     nestedIndexes?: NestedCardIndex<T1, K>[];
 
-    cardSampleIndex: CardIndex<T1, K>;
-    cardSampleNestedIndex: NestedCardIndex<T1, K>;
+    cardSampleIndex: string;
+    cardSampleNestedIndex: string;
     cardSampleRates: SampleRateTier<K>[];
 
     searchFields?: SearchField<T1>[];
@@ -256,7 +256,13 @@ export class CardEngine<
         return results;
     }
 
-    /** Samples a number of cards from the card pool. */
+    /**
+     * Samples a number of cards from the card pool.
+     *
+     * Requires:
+     * - `NestedCardIndex`: **type -> rarity**
+     * - `CardIndex`: **type**
+     */
     async sample(limit: number, options: SampleOptions = {}): Promise<T1[]> {
         const { excludeCards = [] } = options;
         const picked = new Set(excludeCards);
@@ -272,14 +278,28 @@ export class CardEngine<
 
             let candidates: Set<string> | undefined;
             if (selectedRarity !== undefined) {
-                candidates = new Set(this.config.cardSampleNestedIndex.get(selectedType.type, selectedRarity));
+                const nestedIndex = this.pool.getNestedIndex(this.config.cardSampleNestedIndex);
+                if (!nestedIndex) {
+                    console.warn(
+                        `[CardEngine] Sample failed; no nested index found for type '${selectedType.type}' and rarity '${selectedRarity}'`
+                    );
+                    return [];
+                }
+
+                candidates = new Set(nestedIndex.get(selectedType.type, selectedRarity));
                 if (!candidates?.size) {
                     console.warn(
                         `[CardEngine] Sample failed; no cards found for type '${selectedType.type}' and rarity '${selectedRarity}'`
                     );
                 }
             } else {
-                candidates = new Set(this.config.cardSampleIndex.get(selectedType.type));
+                const index = this.pool.getIndex(this.config.cardSampleIndex);
+                if (!index) {
+                    console.warn(`[CardEngine] Sample failed; no index found for type '${selectedType.type}'`);
+                    return [];
+                }
+
+                candidates = new Set(index.get(selectedType.type));
                 if (!candidates?.size) {
                     console.warn(`[CardEngine] Sample failed; no cards found for type '${selectedType.type}'`);
                 }

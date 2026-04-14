@@ -89,8 +89,8 @@ declare class CardPool<T extends CardLike, K extends string | number = string | 
     has(cardId: string, released?: boolean): Promise<boolean>;
     hasAll(cardIds: string[], released?: boolean): Promise<boolean>;
     clear(): void;
-    getIndex(name: string): Promise<CardIndex<T, K> | undefined>;
-    getNestedIndex(name: string): Promise<NestedCardIndex<T, K> | undefined>;
+    getIndex(name: string): CardIndex<T, K> | undefined;
+    getNestedIndex(name: string): NestedCardIndex<T, K> | undefined;
     private initCache;
     private enqueue;
     refresh(cardIds?: string[]): Promise<void>;
@@ -120,8 +120,8 @@ interface CardEngineConfig<T1 extends CardLike, T2 extends InventoryCardLike, K 
     };
     indexes?: CardIndex<T1, K>[];
     nestedIndexes?: NestedCardIndex<T1, K>[];
-    cardSampleIndex: CardIndex<T1, K>;
-    cardSampleNestedIndex: NestedCardIndex<T1, K>;
+    cardSampleIndex: string;
+    cardSampleNestedIndex: string;
     cardSampleRates: SampleRateTier<K>[];
     searchFields?: SearchField<T1>[];
     sortFn(a: T1, b: T1): number;
@@ -185,7 +185,13 @@ declare class CardEngine<T1 extends CardLike, T2 extends InventoryCardLike, K ex
     search(query: string, options?: SearchOptions<T1>): T1[];
     /** Fuzzy searches the card pool by the configured indexes. Does not query nested indexes. Case-insensitive. */
     searchByIndex(query: string, options?: SearchByIndexOptions<T1>): IndexedSearchResult[];
-    /** Samples a number of cards from the card pool. */
+    /**
+     * Samples a number of cards from the card pool.
+     *
+     * Requires:
+     * - `NestedCardIndex`: **type -> rarity**
+     * - `CardIndex`: **type**
+     */
     sample(limit: number, options?: SampleOptions): Promise<T1[]>;
     /** Samples a number of cards from the card pool and updates them, returning the modified cards. */
     sampleAndUpdate(limit: number, update: UpdateQuery<T1>, options?: SampleOptions): Promise<T1[]>;
