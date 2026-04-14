@@ -112,12 +112,16 @@ export function createCardIndex<T extends CardLike, K extends string | number>(
     return new CardIndex(name, getKey, validator ?? DEFAULT_VALIDATOR);
 }
 
-export function createNestedCardIndex<T extends CardLike, K extends string | number>(
+export function createNestedCardIndex<
+    T extends CardLike,
+    K1 extends string | number = string | number,
+    K2 extends string | number = string | number
+>(
     name: string,
-    getKey1: KeyGetter<T, K>,
-    getKey2: KeyGetter<T, K>,
+    getKey1: KeyGetter<T, K1>,
+    getKey2: KeyGetter<T, K2>,
     /** @defaultBehavior Only allows `state.released` and `state.droppable` cards to be indexed. */
     validator?: Validator<T>
-): NestedCardIndex<T, K> {
+): NestedCardIndex<T, K1, K2> {
     return new NestedCardIndex(name, getKey1, getKey2, validator ?? DEFAULT_VALIDATOR);
 }
