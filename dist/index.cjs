@@ -51,6 +51,7 @@ var InventoryEngine = class {
   constructor(config) {
     this.config = config;
   }
+  config;
   async fetch(invIds, options = {}) {
     const { userId, projection } = options;
     const isArray = Array.isArray(invIds);
@@ -383,6 +384,7 @@ var CardPool = class extends import_node_stream.EventEmitter {
     this.nestedIndexes = new Map((nestedIndexes ?? []).map((index) => [index.name, index]));
     this.indexRef = [...indexes ?? [], ...nestedIndexes ?? []];
   }
+  cardSchema;
   // --- Indexes ---
   all = /* @__PURE__ */ new Map();
   allReleased = /* @__PURE__ */ new Map();
@@ -504,6 +506,7 @@ var CardEngine = class extends import_node_stream2.EventEmitter {
     this.pool.on("cardUpdated", (oldCard, newCard) => this.emit("cardUpdated", oldCard, newCard));
     this.pool.on("cacheRefreshed", (cards, scope) => this.emit("cacheRefreshed", cards, scope));
   }
+  config;
   pool;
   compiledSampleRates;
   // --- Pool Utils ---
@@ -762,6 +765,9 @@ var CardIndex = class {
     this.getKey = getKey;
     this.validator = validator;
   }
+  name;
+  getKey;
+  validator;
   items = /* @__PURE__ */ new Map();
   insert(card) {
     if (!this.validator(card)) return;
@@ -802,6 +808,10 @@ var NestedCardIndex = class {
     this.getKey2 = getKey2;
     this.validator = validator;
   }
+  name;
+  getKey1;
+  getKey2;
+  validator;
   items = /* @__PURE__ */ new Map();
   insert(card) {
     if (!this.validator(card)) return;
