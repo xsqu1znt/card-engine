@@ -1,4 +1,4 @@
-export * from "./cards/InventoryEngine.js";
+export * from "./cards/inventoryEngine.js";
 export * from "./cards/cardEngine.js";
 export * from "./cards/cardIndex.js";
 export * from "./cards/cardPool.js";

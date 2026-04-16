@@ -214,7 +214,6 @@ declare function createSearchField<T extends CardLike>(name: string, getKey: (ca
 transformer?: (query: string) => string): SearchField<T>;
 
 interface FetchInventoryCardOptions<InvCard extends InventoryCardLike> {
-    userId?: string;
     projection?: ProjectionType<InvCard>;
 }
 interface InventoryEngineConfig<T1 extends CardLike, T2 extends InventoryCardLike, K extends string | number = string | number> {
@@ -225,9 +224,9 @@ declare class InventoryEngine<T1 extends CardLike, T2 extends InventoryCardLike,
     private readonly config;
     constructor(config: InventoryEngineConfig<T1, T2, K>);
     /** Fetches an inventory card and maps it to its actual card. */
-    fetch(invId: string, options?: FetchInventoryCardOptions<T2>): Promise<MappedInventoryCard<T1, T2> | undefined>;
-    fetch(invIds: string | string[], options?: FetchInventoryCardOptions<T2>): Promise<MappedInventoryCard<T1, T2>[]>;
-    fetchAll(options?: FetchInventoryCardOptions<T2>): Promise<MappedInventoryCard<T1, T2>[]>;
+    fetch(userId: string, invId: string, options?: FetchInventoryCardOptions<T2>): Promise<MappedInventoryCard<T1, T2> | undefined>;
+    fetch(userId: string, invIds: string | string[], options?: FetchInventoryCardOptions<T2>): Promise<MappedInventoryCard<T1, T2>[]>;
+    fetchAll(userId: string, options?: FetchInventoryCardOptions<T2>): Promise<MappedInventoryCard<T1, T2>[]>;
     /** Maps inventory cards to their actual card, filtering out cards that don't exist. */
     mapCards(invCards: T2[]): Promise<MappedInventoryCard<T1, T2>[]>;
 }

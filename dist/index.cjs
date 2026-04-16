@@ -46,28 +46,22 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
-// src/cards/InventoryEngine.ts
+// src/cards/inventoryEngine.ts
 var InventoryEngine = class {
   constructor(config) {
     this.config = config;
   }
   config;
-  async fetch(invIds, options = {}) {
-    const { userId, projection } = options;
+  async fetch(userId, invIds, options = {}) {
+    const { projection } = options;
     const isArray = Array.isArray(invIds);
     const cardIdsArray = isArray ? invIds : [invIds];
-    const invCards = await this.config.inventorySchema.fetchAll(
-      {
-        ...userId && { userId },
-        invId: { $in: cardIdsArray }
-      },
-      projection
-    );
+    const invCards = await this.config.inventorySchema.fetchAll({ userId, invId: { $in: cardIdsArray } }, projection);
     const mapped = await this.mapCards(invCards);
     return isArray ? mapped : mapped[0];
   }
-  async fetchAll(options = {}) {
-    const { userId, projection } = options;
+  async fetchAll(userId, options = {}) {
+    const { projection } = options;
     const invCards = await this.config.inventorySchema.fetchAll({ ...userId && { userId } }, projection);
     return this.mapCards(invCards);
   }
