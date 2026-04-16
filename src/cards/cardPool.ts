@@ -125,7 +125,6 @@ export class CardPool<T extends CardLike, K extends string | number = string | n
 
     // --- Cache ---
     async init(): Promise<void> {
-        console.log(this.initPromise);
         if (this.initPromise) return this.initPromise;
 
         const fn = async () => {

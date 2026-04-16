@@ -451,7 +451,6 @@ var CardPool = class extends import_node_stream.EventEmitter {
   }
   // --- Cache ---
   async init() {
-    console.log(this.initPromise);
     if (this.initPromise) return this.initPromise;
     const fn = async () => {
       try {
