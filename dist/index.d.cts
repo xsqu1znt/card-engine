@@ -91,7 +91,7 @@ declare class CardPool<T extends CardLike, K extends string | number = string | 
     clear(): void;
     getIndex(name: string): CardIndex<T, K> | undefined;
     getNestedIndex(name: string): NestedCardIndex<T, K> | undefined;
-    private initCache;
+    init(): Promise<this>;
     private enqueue;
     refresh(cardIds?: string[]): Promise<void>;
 }
@@ -182,9 +182,9 @@ declare class CardEngine<T1 extends CardLike, T2 extends InventoryCardLike, K ex
     /** Sorts an array of cards. Non-destructive. */
     sort(cards: T1[]): T1[];
     /** Fuzzy searches the card pool using the configured search fields and sorts the results. Case-insensitive. */
-    search(query: string, options?: SearchOptions<T1>): T1[];
+    search(query: string, options?: SearchOptions<T1>): Promise<T1[]>;
     /** Fuzzy searches the card pool by the configured indexes. Does not query nested indexes. Case-insensitive. */
-    searchByIndex(query: string, options?: SearchByIndexOptions<T1>): IndexedSearchResult[];
+    searchByIndex(query: string, options?: SearchByIndexOptions<T1>): Promise<IndexedSearchResult[]>;
     /**
      * Samples a number of cards from the card pool.
      *

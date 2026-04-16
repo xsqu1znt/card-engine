@@ -164,7 +164,9 @@ export class CardEngine<
 
     // --- CRUD ---
     /** Fuzzy searches the card pool using the configured search fields and sorts the results. Case-insensitive. */
-    search(query: string, options: SearchOptions<T1> = {}): T1[] {
+    async search(query: string, options: SearchOptions<T1> = {}): Promise<T1[]> {
+        await this.pool.init();
+
         const { limit = 25, released = true, excludeSearchFields = [], exclude } = options;
         query = query.toLowerCase();
 
@@ -221,7 +223,9 @@ export class CardEngine<
     }
 
     /** Fuzzy searches the card pool by the configured indexes. Does not query nested indexes. Case-insensitive. */
-    searchByIndex(query: string, options: SearchByIndexOptions<T1> = {}): IndexedSearchResult[] {
+    async searchByIndex(query: string, options: SearchByIndexOptions<T1> = {}): Promise<IndexedSearchResult[]> {
+        await this.pool.init();
+
         const { limit = 25, released = true, exclude } = options;
         query = query.toLowerCase();
 
@@ -264,6 +268,8 @@ export class CardEngine<
      * - `CardIndex`: **type**
      */
     async sample(limit: number, options: SampleOptions = {}): Promise<T1[]> {
+        await this.pool.init();
+
         const { excludeCards = [] } = options;
         const picked = new Set(excludeCards);
         const results: T1[] = [];
@@ -377,6 +383,8 @@ export class CardEngine<
 
     /** Updates multiple cards in the database. Supports atomic operators e.g. $inc. */
     async update(cardIds: string[], update: UpdateQuery<T1>): Promise<T1[]> {
+        await this.pool.init();
+
         const updateRes = await this.config.schemas.card.updateAll({ cardId: { $in: cardIds } }, update);
         if (updateRes.modifiedCount !== cardIds.length) {
             console.warn(
@@ -421,6 +429,7 @@ export class CardEngine<
 
     /** Releases a batch of cards and updates the cache. */
     async release(cardIds: string[]): Promise<T1[]> {
+        await this.pool.init();
         await this.config.schemas.card.updateAll({ cardId: { $in: cardIds } }, { "state.released": true });
         await this.pool.refresh(cardIds);
         return await this.getMany(cardIds, true);

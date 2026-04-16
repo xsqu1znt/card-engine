@@ -86,22 +86,22 @@ export class CardPool<T extends CardLike, K extends string | number = string | n
     }
 
     async get(cardId: string, released?: boolean): Promise<T | undefined> {
-        await this.initCache();
+        await this.init();
         return released ? this.allReleased.get(cardId) : this.all.get(cardId);
     }
 
     async getMany(cardIds: string[], released?: boolean): Promise<(T | undefined)[]> {
-        await this.initCache();
+        await this.init();
         return cardIds.map(id => (released ? this.allReleased.get(id) : this.all.get(id)));
     }
 
     async has(cardId: string, released?: boolean): Promise<boolean> {
-        await this.initCache();
+        await this.init();
         return released ? this.allReleased.has(cardId) : this.all.has(cardId);
     }
 
     async hasAll(cardIds: string[], released?: boolean): Promise<boolean> {
-        await this.initCache();
+        await this.init();
         return cardIds.every(id => (released ? this.allReleased.has(id) : this.all.has(id)));
     }
 
@@ -124,7 +124,7 @@ export class CardPool<T extends CardLike, K extends string | number = string | n
     }
 
     // --- Cache ---
-    private async initCache(): Promise<this> {
+    async init(): Promise<this> {
         if (this.initPromise) return this.initPromise;
 
         const fn = async () => {
@@ -156,7 +156,7 @@ export class CardPool<T extends CardLike, K extends string | number = string | n
     }
 
     async refresh(cardIds?: string[]): Promise<void> {
-        await this.initCache();
+        await this.init();
 
         await this.enqueue(async () => {
             if (!cardIds?.length) this.clear();

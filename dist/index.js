@@ -373,19 +373,19 @@ var CardPool = class extends EventEmitter {
     }
   }
   async get(cardId, released) {
-    await this.initCache();
+    await this.init();
     return released ? this.allReleased.get(cardId) : this.all.get(cardId);
   }
   async getMany(cardIds, released) {
-    await this.initCache();
+    await this.init();
     return cardIds.map((id) => released ? this.allReleased.get(id) : this.all.get(id));
   }
   async has(cardId, released) {
-    await this.initCache();
+    await this.init();
     return released ? this.allReleased.has(cardId) : this.all.has(cardId);
   }
   async hasAll(cardIds, released) {
-    await this.initCache();
+    await this.init();
     return cardIds.every((id) => released ? this.allReleased.has(id) : this.all.has(id));
   }
   clear() {
@@ -402,7 +402,7 @@ var CardPool = class extends EventEmitter {
     return this.nestedIndexes.get(name);
   }
   // --- Cache ---
-  async initCache() {
+  async init() {
     if (this.initPromise) return this.initPromise;
     const fn = async () => {
       try {
@@ -427,7 +427,7 @@ var CardPool = class extends EventEmitter {
     return this.queuePromise;
   }
   async refresh(cardIds) {
-    await this.initCache();
+    await this.init();
     await this.enqueue(async () => {
       if (!cardIds?.length) this.clear();
       const cards = cardIds?.length ? await this.cardSchema.fetchAll({ cardId: { $in: cardIds } }) : await this.cardSchema.fetchAll();
@@ -482,7 +482,8 @@ var CardEngine = class extends EventEmitter2 {
   }
   // --- CRUD ---
   /** Fuzzy searches the card pool using the configured search fields and sorts the results. Case-insensitive. */
-  search(query, options = {}) {
+  async search(query, options = {}) {
+    await this.pool.init();
     const { limit = 25, released = true, excludeSearchFields = [], exclude } = options;
     query = query.toLowerCase();
     const source = Array.from((released ? this.pool.allReleased : this.pool.all).values()).filter(
@@ -522,7 +523,8 @@ var CardEngine = class extends EventEmitter2 {
     return this.sort(results);
   }
   /** Fuzzy searches the card pool by the configured indexes. Does not query nested indexes. Case-insensitive. */
-  searchByIndex(query, options = {}) {
+  async searchByIndex(query, options = {}) {
+    await this.pool.init();
     const { limit = 25, released = true, exclude } = options;
     query = query.toLowerCase();
     const source = Array.from((released ? this.pool.allReleased : this.pool.all).values()).filter(
@@ -557,6 +559,7 @@ var CardEngine = class extends EventEmitter2 {
    * - `CardIndex`: **type**
    */
   async sample(limit, options = {}) {
+    await this.pool.init();
     const { excludeCards = [] } = options;
     const picked = new Set(excludeCards);
     const results = [];
@@ -653,6 +656,7 @@ var CardEngine = class extends EventEmitter2 {
   }
   /** Updates multiple cards in the database. Supports atomic operators e.g. $inc. */
   async update(cardIds, update) {
+    await this.pool.init();
     const updateRes = await this.config.schemas.card.updateAll({ cardId: { $in: cardIds } }, update);
     if (updateRes.modifiedCount !== cardIds.length) {
       console.warn(
@@ -688,6 +692,7 @@ var CardEngine = class extends EventEmitter2 {
   }
   /** Releases a batch of cards and updates the cache. */
   async release(cardIds) {
+    await this.pool.init();
     await this.config.schemas.card.updateAll({ cardId: { $in: cardIds } }, { "state.released": true });
     await this.pool.refresh(cardIds);
     return await this.getMany(cardIds, true);
