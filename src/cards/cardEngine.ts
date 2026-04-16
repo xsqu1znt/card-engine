@@ -257,6 +257,20 @@ export class CardEngine<
             }
         }
 
+        // Search card IDs creating a fake ID index
+        for (const card of source) {
+            if (results.length >= limit) break;
+
+            if (card.cardId.toLowerCase().startsWith(query)) {
+                results.push({
+                    matchedKey: card.cardId,
+                    indexName: "byID",
+                    identity: `byId-${card.cardId}`,
+                    cardIds: [card.cardId]
+                });
+            }
+        }
+
         return results;
     }
 

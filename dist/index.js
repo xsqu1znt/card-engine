@@ -546,6 +546,17 @@ var CardEngine = class extends EventEmitter2 {
         }
       }
     }
+    for (const card of source) {
+      if (results.length >= limit) break;
+      if (card.cardId.toLowerCase().startsWith(query)) {
+        results.push({
+          matchedKey: card.cardId,
+          indexName: "byID",
+          identity: `byId-${card.cardId}`,
+          cardIds: [card.cardId]
+        });
+      }
+    }
     return results;
   }
   /**
