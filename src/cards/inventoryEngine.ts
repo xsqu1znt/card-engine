@@ -4,6 +4,7 @@ import type { CardLike, InventoryCardLike, MappedInventoryCard } from "@/types/c
 import type { CardEngine } from "./cardEngine.js";
 
 interface FetchInventoryCardOptions<InvCard extends InventoryCardLike> {
+    limit?: number;
     projection?: ProjectionType<InvCard>;
 }
 
@@ -50,9 +51,9 @@ export class InventoryEngine<
     }
 
     async fetchAll(userId: string, options: FetchInventoryCardOptions<T2> = {}): Promise<MappedInventoryCard<T1, T2>[]> {
-        const { projection } = options;
+        const { limit, projection } = options;
 
-        const invCards = await this.config.inventorySchema.fetchAll({ ...(userId && { userId }) }, projection);
+        const invCards = await this.config.inventorySchema.fetchAll({ userId }, projection, { limit });
         return this.mapCards(invCards);
     }
 
