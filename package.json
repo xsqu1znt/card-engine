@@ -20,8 +20,8 @@
     "scripts": {
         "build": "tsup",
         "check": "tsc --noEmit",
-        "deploy": "bash ./scripts/deploy.sh",
         "format": "prettier --write \"./**/*.{ts,json}\"",
+        "release": "bash ./scripts/release.sh",
         "push": "pnpm build && git add . && git commit -m \"chore: build - $(date +'%Y-%m-%d %H:%M:%S')\" && git push"
     },
     "peerDependencies": {
