@@ -3,13 +3,27 @@ import type { CardLike } from "@/types/card.types.js";
 import sharp from "sharp";
 import { ImageManager } from "../utils/ImageUtils.js";
 
-interface RenderOptions {
+type GrayscaleCardTarget = string | number | CardLike;
+
+export type GrayscaleCardSelector =
+    | boolean
+    | GrayscaleCardTarget[]
+    | Set<GrayscaleCardTarget>
+    | Record<string, boolean>
+    | ((card: CardLike, index: number) => boolean);
+
+export interface RenderOptions {
     rowLength?: number;
     gap?: number;
     scaleFactor?: number;
     pngOptions?: sharp.PngOptions;
     /** Pads the canvas to always fit a full row, leaving empty transparent slots for missing cards. */
     padToFullRow?: boolean;
+    /**
+     * Selects which cards should render in grayscale. Accepts a global boolean,
+     * card IDs, card indexes, CardLike objects, a cardId lookup object, or a predicate.
+     */
+    grayscaleCards?: GrayscaleCardSelector;
 }
 
 interface SlotDimensions {
@@ -71,6 +85,37 @@ export class CardGalleryRenderer {
         return rows;
     }
 
+    private shouldGrayscaleCard(selector: GrayscaleCardSelector | undefined, card: CardLike, index: number): boolean {
+        if (selector === undefined) return false;
+        if (typeof selector === "boolean") return selector;
+        if (typeof selector === "function") return selector(card, index);
+        if (Array.isArray(selector)) {
+            return selector.includes(card.cardId) || selector.includes(index) || selector.includes(card);
+        }
+        if (selector instanceof Set) {
+            return selector.has(card.cardId) || selector.has(index) || selector.has(card);
+        }
+
+        return selector[card.cardId] === true;
+    }
+
+    private async applyGrayscale(
+        buffers: Buffer[],
+        cards: CardLike[],
+        selector: GrayscaleCardSelector | undefined
+    ): Promise<Buffer[]> {
+        if (selector === undefined || selector === false) return buffers;
+
+        return Promise.all(
+            buffers.map((buffer, index) => {
+                const card = cards[index]!;
+                if (!this.shouldGrayscaleCard(selector, card, index)) return buffer;
+
+                return sharp(buffer).grayscale().toBuffer();
+            })
+        );
+    }
+
     private calculateCanvasSize(
         slots: SlotDimensions[],
         rowLength: number,
@@ -129,10 +174,13 @@ export class CardGalleryRenderer {
     }
 
     async render(options: RenderOptions = {}) {
-        const { rowLength = 4, gap = 7, scaleFactor = 0.4, pngOptions, padToFullRow = false } = options;
+        const { rowLength = 4, gap = 7, scaleFactor = 0.4, pngOptions, padToFullRow = false, grayscaleCards } = options;
         const { buffers, metadata } = await this.fetchCardImages();
 
         if (!buffers.length) throw new Error("No cards to render for gallery");
+
+        const cardEntries = Array.from(this.cards.values());
+        const compositeBuffers = await this.applyGrayscale(buffers, cardEntries, grayscaleCards);
 
         const slotDimensions: SlotDimensions[] = metadata.map(m => ({
             width: m.width ?? 0,
@@ -158,7 +206,7 @@ export class CardGalleryRenderer {
         });
 
         const outputBuffer = await canvas
-            .composite(this.getCompositeOperations(buffers, metadata, rowLength, gap))
+            .composite(this.getCompositeOperations(compositeBuffers, metadata, rowLength, gap))
             .png({ compressionLevel: 9, quality: 30, ...pngOptions })
             .toBuffer();
 
